@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像素QQ农场</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pixel-bg: #8c7b75;
+            --pixel-light: #e0d8cf;
+            --pixel-dark: #4a3b32;
+            --pixel-accent: #6daa2c;
+        }
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #2c3e50;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #333;
+            image-rendering: pixelated;
+        }
+
+        /* Pixel Art Borders */
+        .pixel-box {
+            background: #fff;
+            position: relative;
+            box-shadow: 
+                -4px 0 0 0 black,
+                4px 0 0 0 black,
+                0 -4px 0 0 black,
+                0 4px 0 0 black;
+            margin: 4px;
+        }
+
+        .pixel-btn {
+            background: #f0f0f0;
+            border: none;
+            box-shadow: 
+                inset -4px -4px #adafbc,
+                inset 4px 4px #fff,
+                2px 2px 0px 0px #000;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .pixel-btn:active {
+            box-shadow: 
+                inset 4px 4px #adafbc,
+                inset -4px -4px #fff,
+                1px 1px 0px 0px #000;
+            transform: translateY(2px);
+        }
+
+        .pixel-btn:disabled {
+            background: #ccc;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Progress Bar */
+        .pixel-progress-container {
+            background: #333;
+            padding: 2px;
+            height: 16px;
+            width: 100%;
+        }
+        .pixel-progress-fill {
+            height: 100%;
+            background: #6daa2c;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-bounce-pixel {
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        .plot {
+            background-color: #8D6E63; /* Soil color */
+            border: 4px solid #5D4037;
+            position: relative;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+        .plot:hover {
+            filter: brightness(1.1);
+        }
+        .plot.locked {
+            background-color: #333;
+            border-color: #222;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+        }
+        .plot.dry {
+            background-color: #A1887F; /* Lighter soil */
+        }
+        
+        .modal-overlay {
+            background: rgba(0,0,0,0.7);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border: 2px solid #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col items-center justify-start md:justify-center p-2 md:p-4">
+
+    <!-- Top Bar: Stats -->
+    <div class="pixel-box w-full max-w-4xl p-2 md:p-4 mb-2 md:mb-4 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 text-xs md:text-sm bg-blue-100 shrink-0 z-20">
+        <div class="flex gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-start">
+            <div class="flex flex-col items-center md:items-start">
+                <span class="text-gray-500 text-[10px] md:text-xs">等级</span>
+                <span class="text-lg md:text-xl font-bold text-blue-600" id="level-display">Lv.1</span>
+            </div>
+            <div class="flex flex-col flex-1 mx-2 md:w-32 md:flex-none">
+                <span class="text-gray-500 text-[10px] md:text-xs">经验值</span>
+                <div class="pixel-progress-container mt-1 h-3 md:h-4">
+                    <div id="xp-bar" class="pixel-progress-fill bg-yellow-400"></div>
+                </div>
+                <span id="xp-text" class="text-[8px] md:text-[10px] text-center mt-0.5">0/100</span>
+            </div>
+            <div class="flex flex-col items-center md:items-start">
+                <span class="text-gray-500 text-[10px] md:text-xs">金币</span>
+                <span class="text-lg md:text-xl font-bold text-yellow-600">💰 <span id="coins-display">100</span></span>
+            </div>
+        </div>
+        <div class="flex gap-1 md:gap-2 w-full md:w-auto justify-center flex-wrap">
+            <div id="network-status" class="pixel-box px-2 flex items-center gap-1 text-[8px] md:text-[10px] text-gray-500 bg-gray-200 h-8 md:h-auto" title="正在连接服务器...">
+                <div class="w-2 h-2 rounded-full bg-gray-400" id="network-dot"></div>
+                <span id="network-text">离线</span>
+            </div>
+            <button onclick="game.forceSave()" id="save-btn" class="pixel-btn px-2 py-1 md:py-2 text-gray-800 text-xs hidden h-8 md:h-auto">💾</button>
+            <button onclick="ui.toggleView()" id="view-toggle-btn" class="pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-pink-800 text-xs h-8 md:h-auto whitespace-nowrap">🐾 喂宠物</button>
+            <button onclick="game.checkIn()" id="check-in-btn" class="pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-blue-800 text-xs h-8 md:h-auto whitespace-nowrap">📅 签到</button>
+            <button onclick="ui.toggleShop()" class="pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-green-800 text-xs h-8 md:h-auto whitespace-nowrap">🛒 商店</button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex flex-col md:flex-row gap-4 w-full max-w-4xl flex-1 min-h-0 relative">
+        
+        <!-- Left: Farm Grid -->
+        <div id="view-farm" class="pixel-box w-full h-full bg-green-200 p-2 md:p-6 flex flex-col relative overflow-y-auto transition-all duration-300">
+            <h2 class="text-center mb-2 md:mb-4 text-green-800 font-bold sticky top-0 bg-green-200/90 py-2 z-10 backdrop-blur-sm">🌱 我的农场</h2>
+            <div id="farm-grid" class="grid grid-cols-3 gap-2 md:gap-4 pb-16 md:pb-0 content-start md:content-center auto-rows-max">
+                <!-- Plots generated by JS -->
+            </div>
+            
+        </div>
+
+        <!-- Right: Pet & Info -->
+        <div id="view-pet" class="pixel-box hidden w-full h-full bg-pink-50 p-2 md:p-4 flex flex-col transition-all duration-300 overflow-y-auto">
+            <h2 class="text-center mb-2 text-pink-800 font-bold sticky top-0 bg-pink-50/90 py-2 z-10">🐾 我的宠物</h2>
+            
+            <!-- Pet Display -->
+            <div class="flex-1 bg-white border-2 border-gray-200 m-2 flex flex-col items-center justify-center relative p-4 min-h-[200px]" style="image-rendering: pixelated;">
+                <div id="pet-sprite" class="text-6xl md:text-8xl cursor-pointer select-none animate-bounce-pixel" onclick="game.interactPet()">🥚</div>
+                <div id="pet-dialog" class="absolute top-2 bg-white border border-black p-2 text-xs hidden rounded bubble z-10">...</div>
+            </div>
+
+            <!-- Pet Stats -->
+            <div class="space-y-2 text-xs mb-4 shrink-0">
+                <div class="flex justify-between">
+                    <span>名称:</span>
+                    <span id="pet-name" class="font-bold">神秘的蛋</span>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span>好感度:</span>
+                        <span id="pet-love-val">0/50</span>
+                    </div>
+                    <div class="pixel-progress-container h-2">
+                        <div id="pet-love-bar" class="pixel-progress-fill bg-pink-500"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span>饥饿值:</span>
+                        <span id="pet-hunger-val">50/100</span>
+                    </div>
+                    <div class="pixel-progress-container h-2">
+                        <div id="pet-hunger-bar" class="pixel-progress-fill bg-orange-500" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pet Actions -->
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="game.feedPet()" class="pixel-btn py-2 text-xs">🍖 喂食</button>
+                <button onclick="game.playPet()" class="pixel-btn py-2 text-xs">🎾 玩耍</button>
+            </div>
+            
+            <!-- Log -->
+            <div class="mt-4 border-t-2 border-dashed border-gray-300 pt-2 flex-none overflow-hidden flex flex-col h-32 md:h-auto md:flex-1 min-h-[100px]">
+                <span class="text-xs text-gray-500 mb-1">日志:</span>
+                <div id="game-log" class="text-[10px] overflow-y-auto flex-1 font-mono leading-relaxed pr-1">
+                    <div class="text-gray-400">> 欢迎来到农场!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Toast Area -->
+    <div id="toast-area" class="fixed bottom-20 md:bottom-10 left-0 right-0 pointer-events-none flex flex-col gap-2 items-center z-50"></div>
+
+    <!-- Modals -->
+    <!-- Shop Modal -->
+    <div id="shop-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+        <div class="pixel-box bg-white p-4 w-80 max-w-full">
+            <div class="flex justify-between items-center mb-4 border-b-2 border-black pb-2">
+                <h3 class="font-bold">杂货店</h3>
+                <button onclick="ui.toggleShop()" class="text-red-500 font-bold">X</button>
+            </div>
+            <div id="shop-items" class="space-y-2 max-h-60 overflow-y-auto">
+                <!-- Items injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Plot Action Modal -->
+    <div id="plot-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+        <div class="pixel-box bg-white p-4 w-72">
+            <h3 class="font-bold text-center mb-4" id="plot-modal-title">土地操作</h3>
+            <div id="plot-actions" class="grid grid-cols-2 gap-2">
+                <!-- Dynamic Buttons -->
+            </div>
+            <button onclick="ui.closePlotModal()" class="pixel-btn w-full mt-4 text-red-800">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Network & API Manager ---
+        const api = {
+            host: 'http://localhost:3000',
+            userId: null,
+            online: false,
+            
+            // Generate a random ID for offline/mock usage
+            getMockId: () => {
+                let id = localStorage.getItem('pixel_farm_id');
+                if (!id) {
+                    id = 'user_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('pixel_farm_id', id);
+                }
+                return id;
+            },
+
+            init: async () => {
+                const statusDot = document.getElementById('network-dot');
+                const statusText = document.getElementById('network-text');
+                const saveBtn = document.getElementById('save-btn');
+
+                try {
+                    // Attempt real login
+                    const res = await fetch(`${api.host}/login`);
+                    if (!res.ok) throw new Error('Server unreachable');
+                    
+                    const json = await res.json();
+                    api.userId = json.userId;
+                    state = json.data; // Load data from server
+                    api.online = true;
+                    
+                    // Update UI for Online Mode
+                    statusDot.className = "w-2 h-2 rounded-full bg-green-500";
+                    statusText.innerText = `在线 (ID:${api.userId.substr(0,4)})`;
+                    saveBtn.classList.remove('hidden');
+                    ui.updateLog("连接服务器成功，存档已同步。");
+
+                } catch (e) {
+                    // Fallback to LocalStorage (Offline Mode)
+                    console.log("Server unreachable, switching to offline mode.");
+                    api.userId = api.getMockId();
+                    api.online = false;
+
+                    const localData = localStorage.getItem('pixel_farm_save');
+                    if (localData) {
+                        state = JSON.parse(localData);
+                        ui.updateLog("读取本地存档成功。");
+                    } else {
+                        // New Game (Offline) - Initialize default state logic here if needed
+                        ui.updateLog("欢迎新玩家! (离线模式)");
+                    }
+
+                    // Update UI for Offline Mode
+                    statusDot.className = "w-2 h-2 rounded-full bg-gray-400";
+                    statusText.innerText = "离线模式";
+                    saveBtn.classList.remove('hidden');
+                }
+
+                // Start Auto-Save Loop
+                setInterval(api.save, 30000); // Save every 30s
+            },
+
+            save: async () => {
+                if (!api.userId) return;
+
+                if (api.online) {
+                    try {
+                        await fetch(`${api.host}/save`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: api.userId, data: state })
+                        });
+                        console.log("Cloud save successful");
+                    } catch (e) {
+                        console.error("Cloud save failed, falling back to local");
+                        api.online = false; // Downgrade status
+                        document.getElementById('network-dot').className = "w-2 h-2 rounded-full bg-red-500";
+                        localStorage.setItem('pixel_farm_save', JSON.stringify(state));
+                    }
+                } else {
+                    localStorage.setItem('pixel_farm_save', JSON.stringify(state));
+                    console.log("Local save successful");
+                }
+            }
+        };
+
+        // --- Game Configuration & Data ---
+        const CONFIG = {
+            levels: [0, 100, 300, 600, 1000, 1500, 2200, 3000, 4000, 5000],
+            crops: {
+                carrot: { name: '胡萝卜', icon: '🥕', seedPrice: 10, sellPrice: 25, growTime: 10, xp: 10, unlockLvl: 1 },
+                corn: { name: '玉米', icon: '🌽', seedPrice: 30, sellPrice: 70, growTime: 20, xp: 25, unlockLvl: 2 },
+                potato: { name: '土豆', icon: '🥔', seedPrice: 50, sellPrice: 120, growTime: 40, xp: 45, unlockLvl: 3 },
+                tomato: { name: '番茄', icon: '🍅', seedPrice: 80, sellPrice: 200, growTime: 60, xp: 80, unlockLvl: 4 },
+                strawberry: { name: '草莓', icon: '🍓', seedPrice: 150, sellPrice: 400, growTime: 120, xp: 150, unlockLvl: 5 },
+            },
+            petStages: [
+                { name: '神秘的蛋', icon: '🥚', loveReq: 0 },
+                { name: '小黄鸡', icon: '🐣', loveReq: 50 },
+                { name: '战斗鸡', icon: '🐓', loveReq: 200 },
+                { name: '凤凰', icon: '🦅', loveReq: 500 },
+                { name: '神兽', icon: '🐲', loveReq: 1000 },
+            ]
+        };
+
+        // --- Game State (Default Template) ---
+        // Actual state will be loaded by api.init()
+        let state = {
+            level: 1,
+            xp: 0,
+            coins: 100,
+            lastCheckIn: null,
+            inventory: {
+                seeds: { carrot: 2 } // Start with 2 carrot seeds
+            },
+            plots: Array(9).fill(null).map((_, i) => ({
+                id: i,
+                locked: i >= 3, // Start with 3 plots
+                crop: null, // { type: 'carrot', plantedAt: timestamp, stage: 0-3, water: 100 }
+            })),
+            pet: {
+                stage: 0,
+                love: 0,
+                hunger: 80, // 0-100
+                lastInteraction: Date.now()
+            }
+        };
+
+        // --- UI Controller ---
+        const ui = {
+            init: async () => {
+                // Initialize Network & Load Data First
+                await api.init();
+
+                // Then Render
+                ui.renderStats();
+                ui.renderFarm();
+                ui.renderPet();
+                
+                // Start Loop
+                setInterval(game.loop, 1000);
+            },
+
+            renderStats: () => {
+                document.getElementById('level-display').innerText = `Lv.${state.level}`;
+                document.getElementById('coins-display').innerText = state.coins;
+                
+                const nextLvlXp = CONFIG.levels[state.level] || 99999;
+                const prevLvlXp = CONFIG.levels[state.level - 1] || 0;
+                const currentLvlProgress = state.xp - prevLvlXp;
+                const requiredProgress = nextLvlXp - prevLvlXp;
+                
+                const percent = Math.min(100, Math.max(0, (currentLvlProgress / requiredProgress) * 100));
+                
+                document.getElementById('xp-bar').style.width = `${percent}%`;
+                document.getElementById('xp-text').innerText = `${state.xp}/${nextLvlXp}`;
+            },
+
+            renderFarm: () => {
+                const grid = document.getElementById('farm-grid');
+                grid.innerHTML = '';
+
+                state.plots.forEach(plot => {
+                    const el = document.createElement('div');
+                    
+                    if (plot.locked) {
+                        el.className = 'plot locked rounded-md h-24 flex flex-col justify-center items-center text-gray-500';
+                        el.innerHTML = `<span class="text-2xl">🔒</span><span class="text-[8px]">Lv.${Math.floor(plot.id/3) * 2 + 1}解锁</span>`;
+                    } else {
+                        // Unlocked Plot
+                        el.className = `plot rounded-md h-24 flex flex-col justify-center items-center relative shadow-inner ${plot.crop && plot.crop.water <= 0 ? 'dry' : ''}`;
+                        el.onclick = () => game.handlePlotClick(plot.id);
+
+                        if (!plot.crop) {
+                            el.innerHTML = `<span class="text-gray-700 opacity-50 text-xs">空闲</span>`;
+                        } else {
+                            // Growing Crop
+                            const cropConfig = CONFIG.crops[plot.crop.type];
+                            const progress = Math.min(100, (plot.crop.progress / cropConfig.growTime) * 100);
+                            
+                            // Visual stage based on progress
+                            let icon = '🌱'; // Sprout
+                            if (progress > 33) icon = '🌿'; // Growing
+                            if (progress > 66) icon = '🌳'; // Tall
+                            if (progress >= 100) icon = cropConfig.icon; // Ripe
+
+                            el.innerHTML = `
+                                <div class="text-3xl animate-bounce-pixel">${icon}</div>
+                                <div class="absolute bottom-1 left-1 right-1">
+                                    <div class="pixel-progress-container h-1.5">
+                                        <div class="pixel-progress-fill ${plot.crop.water <= 0 ? 'bg-red-500' : 'bg-green-500'}" style="width: ${progress}%"></div>
+                                    </div>
+                                    ${plot.crop.water <= 0 ? '<div class="text-[8px] text-red-800 bg-white/80 absolute -top-4 w-full text-center">缺水!</div>' : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                    grid.appendChild(el);
+                });
+            },
+
+            renderPet: () => {
+                const petConfig = CONFIG.petStages[state.pet.stage];
+                document.getElementById('pet-sprite').innerText = petConfig.icon;
+                document.getElementById('pet-name').innerText = petConfig.name;
+                
+                // Love
+                const nextStageLove = CONFIG.petStages[state.pet.stage + 1] ? CONFIG.petStages[state.pet.stage + 1].loveReq : 'MAX';
+                const lovePercent = typeof nextStageLove === 'number' ? (state.pet.love / nextStageLove) * 100 : 100;
+                document.getElementById('pet-love-bar').style.width = `${Math.min(100, lovePercent)}%`;
+                document.getElementById('pet-love-val').innerText = `${state.pet.love}/${nextStageLove}`;
+
+                // Hunger
+                document.getElementById('pet-hunger-bar').style.width = `${state.pet.hunger}%`;
+                document.getElementById('pet-hunger-val').innerText = `${state.pet.hunger}/100`;
+                
+                // Hunger color
+                const hungerBar = document.getElementById('pet-hunger-bar');
+                if (state.pet.hunger < 30) hungerBar.className = 'pixel-progress-fill bg-red-600';
+                else if (state.pet.hunger < 70) hungerBar.className = 'pixel-progress-fill bg-yellow-500';
+                else hungerBar.className = 'pixel-progress-fill bg-orange-500';
+            },
+
+            updateLog: (msg) => {
+                const log = document.getElementById('game-log');
+                const line = document.createElement('div');
+                line.innerText = `> ${msg}`;
+                line.className = "mb-1";
+                log.appendChild(line);
+                log.scrollTop = log.scrollHeight;
+            },
+
+            showToast: (emoji, text, color = 'text-black') => {
+                const area = document.getElementById('toast-area');
+                const toast = document.createElement('div');
+                toast.className = `bg-white border-2 border-black px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-bounce-pixel ${color}`;
+                toast.innerHTML = `<span class="text-xl">${emoji}</span><span class="font-bold text-xs">${text}</span>`;
+                area.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            },
+
+            toggleShop: () => {
+                const modal = document.getElementById('shop-modal');
+                const list = document.getElementById('shop-items');
+                
+                if (modal.classList.contains('hidden')) {
+                    list.innerHTML = '';
+                    
+                    // Generate Seed Items
+                    Object.entries(CONFIG.crops).forEach(([key, crop]) => {
+                        const locked = state.level < crop.unlockLvl;
+                        const owned = state.inventory.seeds[key] || 0;
+                        
+                        const item = document.createElement('div');
+                        item.className = 'flex justify-between items-center border-b border-gray-200 py-2';
+                        item.innerHTML = `
+                            <div class="flex items-center gap-2 ${locked ? 'opacity-50' : ''}">
+                                <span class="text-2xl">${crop.icon}</span>
+                                <div>
+                                    <div class="font-bold text-sm">${crop.name}种子</div>
+                                    <div class="text-[10px] text-gray-500">需Lv.${crop.unlockLvl} • ${crop.growTime}秒</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs mb-1">拥有: ${owned}</div>
+                                <button onclick="game.buySeed('${key}')" 
+                                    class="pixel-btn px-2 py-1 text-xs text-green-700"
+                                    ${locked || state.coins < crop.seedPrice ? 'disabled' : ''}>
+                                    ${crop.seedPrice}💰
+                                </button>
+                            </div>
+                        `;
+                        list.appendChild(item);
+                    });
+
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            },
+
+            toggleView: () => {
+                const farmView = document.getElementById('view-farm');
+                const petView = document.getElementById('view-pet');
+                const btn = document.getElementById('view-toggle-btn');
+                
+                // Base classes for the button to maintain responsiveness
+                const baseClasses = "pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-xs h-8 md:h-auto whitespace-nowrap";
+
+                if (farmView.classList.contains('hidden')) {
+                    // Switch to Farm
+                    farmView.classList.remove('hidden');
+                    petView.classList.add('hidden');
+                    btn.innerHTML = "🐾 <span class='hidden md:inline'>去</span>喂宠物";
+                    btn.className = `${baseClasses} text-pink-800`;
+                } else {
+                    // Switch to Pet
+                    farmView.classList.add('hidden');
+                    petView.classList.remove('hidden');
+                    btn.innerHTML = "🌱 <span class='hidden md:inline'>去</span>农场";
+                    btn.className = `${baseClasses} text-green-800`;
+                }
+            },
+
+            showPlotModal: (plotId, type) => {
+                const modal = document.getElementById('plot-modal');
+                const actions = document.getElementById('plot-actions');
+                const title = document.getElementById('plot-modal-title');
+                
+                actions.innerHTML = '';
+                modal.classList.remove('hidden');
+
+                if (type === 'empty') {
+                    title.innerText = "选择种子播种";
+                    // List inventory seeds
+                    let hasSeeds = false;
+                    Object.entries(state.inventory.seeds).forEach(([seedKey, count]) => {
+                        if (count > 0) {
+                            hasSeeds = true;
+                            const cropInfo = CONFIG.crops[seedKey];
+                            const btn = document.createElement('button');
+                            btn.className = 'pixel-btn py-4 flex flex-col items-center gap-1';
+                            btn.onclick = () => { game.plant(plotId, seedKey); ui.closePlotModal(); };
+                            btn.innerHTML = `
+                                <span class="text-2xl">${cropInfo.icon}</span>
+                                <span class="text-xs">${cropInfo.name}</span>
+                                <span class="text-[10px] text-gray-500">x${count}</span>
+                            `;
+                            actions.appendChild(btn);
+                        }
+                    });
+
+                    if (!hasSeeds) {
+                        actions.innerHTML = `<div class="col-span-2 text-center text-xs text-gray-500 py-4">没有种子了，去商店买点吧!</div>`;
+                    }
+                } else if (type === 'growing') {
+                    title.innerText = "照料作物";
+                    const btnWater = document.createElement('button');
+                    btnWater.className = 'pixel-btn py-4 flex flex-col items-center gap-1 text-blue-600';
+                    btnWater.innerHTML = `<span class="text-2xl">💧</span><span>浇水</span>`;
+                    btnWater.onclick = () => { game.water(plotId); ui.closePlotModal(); };
+                    actions.appendChild(btnWater);
+
+                    const btnFert = document.createElement('button');
+                    btnFert.className = 'pixel-btn py-4 flex flex-col items-center gap-1 text-purple-600';
+                    btnFert.innerHTML = `<span class="text-2xl">⚡</span><span>施肥(50💰)</span>`;
+                    btnFert.onclick = () => { game.fertilize(plotId); ui.closePlotModal(); };
+                    actions.appendChild(btnFert);
+                }
+            },
+
+            closePlotModal: () => {
+                document.getElementById('plot-modal').classList.add('hidden');
+            },
+            
+            animatePet: (animationClass) => {
+                const sprite = document.getElementById('pet-sprite');
+                sprite.classList.remove('animate-bounce-pixel');
+                sprite.classList.add(animationClass);
+                setTimeout(() => {
+                    sprite.classList.remove(animationClass);
+                    sprite.classList.add('animate-bounce-pixel');
+                }, 500);
+            }
+        };
+
+        // --- Game Logic ---
+        const game = {
+            loop: () => {
+                // 1. Grow Crops
+                state.plots.forEach(plot => {
+                    if (plot.crop) {
+                        if (plot.crop.water > 0) {
+                            const cropData = CONFIG.crops[plot.crop.type];
+                            // Only grow if not finished
+                            if (plot.crop.progress < cropData.growTime) {
+                                plot.crop.progress += 1;
+                                plot.crop.water -= 0.5; // Consumes water over time
+                            }
+                        }
+                    }
+                });
+
+                // 2. Pet Hunger
+                if (state.pet.hunger > 0) {
+                    state.pet.hunger -= 0.2; // Slowly get hungry
+                    if (state.pet.hunger < 0) state.pet.hunger = 0;
+                }
+
+                // 3. Unlock Plots
+                // Plots 3, 4, 5... unlock at level 2, 4, 6
+                // Map: Plot ID -> Unlock Level
+                // 0-2: Lvl 0
+                // 3: Lvl 2
+                // 4: Lvl 3
+                // 5: Lvl 4 etc.
+                state.plots.forEach((plot, index) => {
+                    if (index >= 3) {
+                        const requiredLvl = Math.floor(index/3) * 2 + 1; // Simplified logic for demo
+                        if (state.level >= requiredLvl && plot.locked) {
+                            plot.locked = false;
+                            ui.updateLog(`解锁了一块新土地!`);
+                        }
+                    }
+                });
+
+                ui.renderFarm();
+                ui.renderPet();
+                ui.renderStats();
+            },
+            
+            forceSave: () => {
+                api.save();
+                ui.showToast('💾', '已保存');
+            },
+
+            handlePlotClick: (id) => {
+                const plot = state.plots[id];
+                if (!plot || plot.locked) return;
+
+                if (!plot.crop) {
+                    // Empty: Open plant menu
+                    ui.showPlotModal(id, 'empty');
+                } else {
+                    const cropData = CONFIG.crops[plot.crop.type];
+                    if (plot.crop.progress >= cropData.growTime) {
+                        // Harvest
+                        game.harvest(id);
+                    } else {
+                        // Growing: Open care menu
+                        ui.showPlotModal(id, 'growing');
+                    }
+                }
+            },
+
+            plant: (plotId, seedType) => {
+                if (state.inventory.seeds[seedType] > 0) {
+                    state.inventory.seeds[seedType]--;
+                    state.plots[plotId].crop = {
+                        type: seedType,
+                        progress: 0,
+                        water: 100
+                    };
+                    ui.updateLog(`种植了 ${CONFIG.crops[seedType].name}`);
+                    ui.renderFarm();
+                    api.save();
+                }
+            },
+
+            water: (plotId) => {
+                const plot = state.plots[plotId];
+                if (plot && plot.crop) {
+                    plot.crop.water = 100;
+                    game.addXP(2);
+                    ui.showToast('💧', '水分充足!');
+                    ui.updateLog('给庄稼浇水了 (+2 XP)');
+                    ui.renderFarm();
+                    api.save();
+                }
+            },
+
+            fertilize: (plotId) => {
+                const plot = state.plots[plotId];
+                if (plot && plot.crop && state.coins >= 50) {
+                    const cropData = CONFIG.crops[plot.crop.type];
+                    if (plot.crop.progress < cropData.growTime) {
+                        state.coins -= 50;
+                        plot.crop.progress += 20; // Instant growth boost
+                        game.addXP(5);
+                        ui.showToast('⚡', '生长加速!');
+                        ui.updateLog('施肥加速生长 (-50💰, +5 XP)');
+                        ui.renderFarm();
+                        api.save();
+                    } else {
+                        ui.updateLog('庄稼已经成熟了，不用施肥。');
+                    }
+                } else {
+                    ui.updateLog('金币不足!');
+                }
+            },
+
+            harvest: (plotId) => {
+                const plot = state.plots[plotId];
+                if (plot && plot.crop) {
+                    const cropData = CONFIG.crops[plot.crop.type];
+                    const income = cropData.sellPrice;
+                    const xpGain = cropData.xp;
+
+                    state.coins += income;
+                    game.addXP(xpGain);
+                    
+                    // Chance to get seed back?
+                    if (Math.random() > 0.8) {
+                        state.inventory.seeds[plot.crop.type] = (state.inventory.seeds[plot.crop.type] || 0) + 1;
+                        ui.updateLog(`收获时意外获得一颗${cropData.name}种子!`);
+                    }
+
+                    plot.crop = null;
+                    ui.showToast('💰', `+${income}`);
+                    ui.updateLog(`收获了 ${cropData.name}, 获得 ${income}金币, ${xpGain} XP`);
+                    ui.renderFarm();
+                    api.save();
+                }
+            },
+
+            buySeed: (type) => {
+                const crop = CONFIG.crops[type];
+                if (state.coins >= crop.seedPrice) {
+                    state.coins -= crop.seedPrice;
+                    state.inventory.seeds[type] = (state.inventory.seeds[type] || 0) + 1;
+                    ui.updateLog(`购买了 ${crop.name}种子`);
+                    ui.toggleShop(); // Refresh UI to show updated quantities/coins
+                    ui.toggleShop(); 
+                    ui.renderStats();
+                    api.save();
+                }
+            },
+
+            checkIn: () => {
+                const now = new Date().toDateString();
+                if (state.lastCheckIn !== now) {
+                    state.coins += 50;
+                    game.addXP(20);
+                    state.inventory.seeds.carrot = (state.inventory.seeds.carrot || 0) + 2;
+                    state.lastCheckIn = now;
+                    ui.showToast('🎁', '签到成功!');
+                    ui.updateLog('每日签到: +50金币, +20 XP, +2 胡萝卜种子');
+                    api.save();
+                } else {
+                    ui.updateLog('今天已经签到过了哦。');
+                }
+            },
+
+            addXP: (amount) => {
+                state.xp += amount;
+                const nextLvlXp = CONFIG.levels[state.level] || 999999;
+                if (state.xp >= nextLvlXp) {
+                    state.level++;
+                    ui.showToast('🆙', '升级了!!', 'text-yellow-600');
+                    ui.updateLog(`恭喜! 农场等级提升到了 Lv.${state.level}`);
+                    api.save();
+                }
+                ui.renderStats();
+            },
+
+            // --- Pet Logic ---
+            feedPet: () => {
+                if (state.pet.hunger >= 90) {
+                    ui.updateLog('宠物太饱了，吃不下了。');
+                    return;
+                }
+                if (state.coins >= 10) {
+                    state.coins -= 10;
+                    state.pet.hunger = Math.min(100, state.pet.hunger + 30);
+                    game.increasePetLove(5);
+                    game.addXP(5);
+                    ui.animatePet('shake');
+                    ui.showToast('🍖', '真好吃!');
+                    ui.updateLog('喂食宠物 (-10💰, +5 XP, +5 好感)');
+                    api.save();
+                } else {
+                    ui.updateLog('金币不足买饲料 (10💰)');
+                }
+            },
+
+            playPet: () => {
+                if (state.pet.hunger < 20) {
+                    ui.updateLog('宠物饿得没力气玩了...');
+                    ui.showToast('😫', '我好饿...', 'text-red-500');
+                    return;
+                }
+                state.pet.hunger -= 10;
+                game.increasePetLove(3);
+                game.addXP(2);
+                ui.animatePet('bounce');
+                ui.showToast('❤️', '好开心!');
+                ui.updateLog('和宠物玩耍 (-10饥饿, +2 XP, +3 好感)');
+                api.save();
+            },
+
+            interactPet: () => {
+                const dialogs = [
+                    "主人好!", "今天天气真好!", "快去种地吧!", "我要快快长大!", "你最好啦!"
+                ];
+                const text = dialogs[Math.floor(Math.random() * dialogs.length)];
+                
+                const bubble = document.getElementById('pet-dialog');
+                bubble.innerText = text;
+                bubble.classList.remove('hidden');
+                
+                ui.animatePet('shake');
+                
+                setTimeout(() => {
+                    bubble.classList.add('hidden');
+                }, 2000);
+            },
+
+            increasePetLove: (amount) => {
+                state.pet.love += amount;
+                
+                // Evolution Check
+                const nextStage = CONFIG.petStages[state.pet.stage + 1];
+                if (nextStage && state.pet.love >= nextStage.loveReq) {
+                    state.pet.stage++;
+                    ui.showToast('✨', '宠物进化!', 'text-purple-600');
+                    ui.updateLog(`太棒了! 宠物进化成了 ${nextStage.name}!`);
+                }
+                ui.renderPet();
+                api.save();
+            }
+        };
+
+        // Initialize
+        ui.init();
+
+    </script>
+</body>
+</html>

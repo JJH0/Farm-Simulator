@@ -1,0 +1,23 @@
+# Pixel QQ Farm Environment Requirements
+
+# Runtime / 运行环境
+Node.js >= 14.0.0
+npm (Node Package Manager)
+
+# Backend Dependencies / 后端依赖
+# These will be installed automatically via package.json
+express
+cors
+body-parser
+
+# Quick Start / 快速开始
+# 1. Install dependencies (安装依赖)
+npm install
+
+# 2. Start the server (启动服务器)
+npm start
+# OR
+node server.js
+
+# 3. Open index.html in your browser
+#    打开浏览器访问 index.html
