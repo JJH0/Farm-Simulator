@@ -146,124 +146,202 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col items-center justify-start md:justify-center p-2 md:p-4">
+<body class="h-screen w-screen overflow-hidden flex flex-col items-center justify-start bg-gray-800 text-sm">
 
     <!-- Top Bar: Stats -->
-    <div class="pixel-box w-full max-w-4xl p-2 md:p-4 mb-2 md:mb-4 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 text-xs md:text-sm bg-blue-100 shrink-0 z-20">
-        <div class="flex gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-start">
-            <div class="flex flex-col items-center md:items-start">
-                <span class="text-gray-500 text-[10px] md:text-xs">等级</span>
-                <span class="text-lg md:text-xl font-bold text-blue-600" id="level-display">Lv.1</span>
+    <div class="pixel-box w-full max-w-4xl p-2 md:p-3 mb-2 flex flex-wrap justify-between items-center gap-2 bg-blue-100 z-20 shrink-0">
+        <!-- Stats Group -->
+        <div class="flex items-center gap-3 md:gap-6 flex-1 min-w-[200px]">
+            <div class="flex flex-col">
+                <span class="text-[10px] text-gray-500">等级</span>
+                <span class="text-sm md:text-lg font-bold text-blue-600" id="level-display">Lv.1</span>
             </div>
-            <div class="flex flex-col flex-1 mx-2 md:w-32 md:flex-none">
-                <span class="text-gray-500 text-[10px] md:text-xs">经验值</span>
-                <div class="pixel-progress-container mt-1 h-3 md:h-4">
+            <div class="flex flex-col flex-1 max-w-[120px]">
+                <span class="text-[10px] text-gray-500">经验</span>
+                <div class="pixel-progress-container h-3 mt-1">
                     <div id="xp-bar" class="pixel-progress-fill bg-yellow-400"></div>
                 </div>
-                <span id="xp-text" class="text-[8px] md:text-[10px] text-center mt-0.5">0/100</span>
+                <span id="xp-text" class="text-[8px] text-center mt-0.5 leading-none">0/100</span>
             </div>
-            <div class="flex flex-col items-center md:items-start">
-                <span class="text-gray-500 text-[10px] md:text-xs">金币</span>
-                <span class="text-lg md:text-xl font-bold text-yellow-600">💰 <span id="coins-display">100</span></span>
+            <div class="flex flex-col">
+                <span class="text-[10px] text-gray-500">金币</span>
+                <span class="text-sm md:text-lg font-bold text-yellow-600">💰<span id="coins-display">100</span></span>
             </div>
         </div>
-        <div class="flex gap-1 md:gap-2 w-full md:w-auto justify-center flex-wrap">
-            <div id="network-status" class="pixel-box px-2 flex items-center gap-1 text-[8px] md:text-[10px] text-gray-500 bg-gray-200 h-8 md:h-auto" title="正在连接服务器...">
-                <div class="w-2 h-2 rounded-full bg-gray-400" id="network-dot"></div>
-                <span id="network-text">离线</span>
+
+        <!-- Buttons Group -->
+        <div class="flex items-center gap-2 flex-wrap justify-end">
+            <!-- Visiting Indicator -->
+            <div id="visit-indicator" class="hidden pixel-box px-2 h-8 flex items-center gap-1 bg-orange-200 border-orange-500">
+                <span class="text-xs font-bold text-orange-800 animate-pulse">拜访中</span>
+                <button onclick="game.returnHome()" class="ml-1 bg-red-500 text-white text-[10px] px-1 rounded hover:bg-red-600">回自家</button>
             </div>
-            <button onclick="game.forceSave()" id="save-btn" class="pixel-btn px-2 py-1 md:py-2 text-gray-800 text-xs hidden h-8 md:h-auto">💾</button>
-            <button onclick="ui.toggleView()" id="view-toggle-btn" class="pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-pink-800 text-xs h-8 md:h-auto whitespace-nowrap">🐾 喂宠物</button>
-            <button onclick="game.checkIn()" id="check-in-btn" class="pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-blue-800 text-xs h-8 md:h-auto whitespace-nowrap">📅 签到</button>
-            <button onclick="ui.toggleShop()" class="pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-green-800 text-xs h-8 md:h-auto whitespace-nowrap">🛒 商店</button>
+
+            <!-- Network Status -->
+            <div id="network-status" class="pixel-box px-2 h-8 flex items-center gap-1 text-[8px] bg-gray-200" title="连接状态">
+                <div class="w-2 h-2 rounded-full bg-gray-400" id="network-dot"></div>
+                <span id="network-text" class="hidden md:inline">离线</span>
+            </div>
+
+            <button onclick="game.forceSave()" id="save-btn" class="pixel-btn px-2 h-8 text-gray-800 text-xs hidden md:inline-block" title="保存">💾</button>
+            
+            <button onclick="ui.toggleSocial()" class="pixel-btn px-2 h-8 text-purple-800 text-xs flex items-center gap-1">
+                <span>👥</span><span class="hidden md:inline">圈子</span>
+            </button>
+            
+            <button onclick="ui.toggleShop()" class="pixel-btn px-2 h-8 text-green-800 text-xs flex items-center gap-1">
+                <span>🛒</span><span class="hidden md:inline">商店</span>
+            </button>
+
+            <button onclick="ui.toggleView()" id="view-toggle-btn" class="pixel-btn px-3 h-8 text-pink-800 text-xs font-bold shadow-md">
+                🐾 去喂宠物
+            </button>
         </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="flex flex-col md:flex-row gap-4 w-full max-w-4xl flex-1 min-h-0 relative">
+    <!-- Main Content Area (Scrollable) -->
+    <div class="flex flex-col md:flex-row gap-4 w-full max-w-4xl flex-1 min-h-0 relative overflow-hidden px-2 md:px-0 pb-4">
         
-        <!-- Left: Farm Grid -->
-        <div id="view-farm" class="pixel-box w-full h-full bg-green-200 p-2 md:p-6 flex flex-col relative overflow-y-auto transition-all duration-300">
-            <h2 class="text-center mb-2 md:mb-4 text-green-800 font-bold sticky top-0 bg-green-200/90 py-2 z-10 backdrop-blur-sm">🌱 我的农场</h2>
-            <div id="farm-grid" class="grid grid-cols-3 gap-2 md:gap-4 pb-16 md:pb-0 content-start md:content-center auto-rows-max">
-                <!-- Plots generated by JS -->
+        <!-- View: Farm -->
+        <div id="view-farm" class="w-full h-full flex flex-col relative transition-all duration-300">
+            <div class="pixel-box w-full h-full bg-green-200 p-2 md:p-6 flex flex-col overflow-y-auto">
+                <h2 class="text-center mb-4 text-green-800 font-bold sticky top-0 bg-green-200/90 py-2 z-10 backdrop-blur-sm shadow-sm" id="farm-title">🌱 我的农场</h2>
+                <div id="farm-grid" class="grid grid-cols-3 gap-2 md:gap-4 pb-20 content-start auto-rows-max">
+                    <!-- Plots generated by JS -->
+                </div>
             </div>
-            
         </div>
 
-        <!-- Right: Pet & Info -->
-        <div id="view-pet" class="pixel-box hidden w-full h-full bg-pink-50 p-2 md:p-4 flex flex-col transition-all duration-300 overflow-y-auto">
-            <h2 class="text-center mb-2 text-pink-800 font-bold sticky top-0 bg-pink-50/90 py-2 z-10">🐾 我的宠物</h2>
-            
-            <!-- Pet Display -->
-            <div class="flex-1 bg-white border-2 border-gray-200 m-2 flex flex-col items-center justify-center relative p-4 min-h-[200px]" style="image-rendering: pixelated;">
-                <div id="pet-sprite" class="text-6xl md:text-8xl cursor-pointer select-none animate-bounce-pixel" onclick="game.interactPet()">🥚</div>
-                <div id="pet-dialog" class="absolute top-2 bg-white border border-black p-2 text-xs hidden rounded bubble z-10">...</div>
-            </div>
+        <!-- View: Pet -->
+        <div id="view-pet" class="hidden w-full h-full flex flex-col relative transition-all duration-300">
+             <div class="pixel-box w-full h-full bg-pink-50 p-2 md:p-4 flex flex-col overflow-y-auto">
+                <h2 class="text-center mb-2 text-pink-800 font-bold sticky top-0 bg-pink-50/90 py-2 z-10">🐾 我的宠物</h2>
+                
+                <!-- Pet Display -->
+                <div class="flex-1 bg-white border-2 border-gray-200 m-2 flex flex-col items-center justify-center relative p-4 min-h-[250px]" style="image-rendering: pixelated;">
+                    <div id="pet-sprite" class="text-8xl cursor-pointer select-none animate-bounce-pixel" onclick="game.interactPet()">🥚</div>
+                    <div id="pet-dialog" class="absolute top-4 bg-white border border-black p-2 text-xs hidden rounded bubble z-10 shadow-lg">...</div>
+                </div>
 
-            <!-- Pet Stats -->
-            <div class="space-y-2 text-xs mb-4 shrink-0">
-                <div class="flex justify-between">
-                    <span>名称:</span>
-                    <span id="pet-name" class="font-bold">神秘的蛋</span>
+                <!-- Pet Stats -->
+                <div class="pixel-box p-3 bg-white mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span>名称:</span>
+                        <span id="pet-name" class="font-bold text-blue-600">神秘的蛋</span>
+                    </div>
+                    <div class="mb-2">
+                        <div class="flex justify-between mb-1 text-xs text-gray-600">
+                            <span>好感度</span>
+                            <span id="pet-love-val">0/50</span>
+                        </div>
+                        <div class="pixel-progress-container h-2">
+                            <div id="pet-love-bar" class="pixel-progress-fill bg-pink-500"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1 text-xs text-gray-600">
+                            <span>饥饿值</span>
+                            <span id="pet-hunger-val">50/100</span>
+                        </div>
+                        <div class="pixel-progress-container h-2">
+                            <div id="pet-hunger-bar" class="pixel-progress-fill bg-orange-500" style="width: 50%"></div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <div class="flex justify-between mb-1">
-                        <span>好感度:</span>
-                        <span id="pet-love-val">0/50</span>
-                    </div>
-                    <div class="pixel-progress-container h-2">
-                        <div id="pet-love-bar" class="pixel-progress-fill bg-pink-500"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between mb-1">
-                        <span>饥饿值:</span>
-                        <span id="pet-hunger-val">50/100</span>
-                    </div>
-                    <div class="pixel-progress-container h-2">
-                        <div id="pet-hunger-bar" class="pixel-progress-fill bg-orange-500" style="width: 50%"></div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Pet Actions -->
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="game.feedPet()" class="pixel-btn py-2 text-xs">🍖 喂食</button>
-                <button onclick="game.playPet()" class="pixel-btn py-2 text-xs">🎾 玩耍</button>
-            </div>
-            
-            <!-- Log -->
-            <div class="mt-4 border-t-2 border-dashed border-gray-300 pt-2 flex-none overflow-hidden flex flex-col h-32 md:h-auto md:flex-1 min-h-[100px]">
-                <span class="text-xs text-gray-500 mb-1">日志:</span>
-                <div id="game-log" class="text-[10px] overflow-y-auto flex-1 font-mono leading-relaxed pr-1">
-                    <div class="text-gray-400">> 欢迎来到农场!</div>
+                <!-- Pet Actions -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="game.feedPet()" class="pixel-btn py-3 text-xs flex items-center justify-center gap-2">
+                        <span class="text-xl">🍖</span> 喂食
+                    </button>
+                    <button onclick="game.playPet()" class="pixel-btn py-3 text-xs flex items-center justify-center gap-2">
+                        <span class="text-xl">🎾</span> 玩耍
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Log Panel (Fixed Bottom) -->
+    <div class="w-full max-w-4xl px-2 md:px-0 h-24 shrink-0 mb-2">
+        <div class="pixel-box w-full h-full bg-gray-900 text-green-400 p-2 font-mono text-xs overflow-y-auto" id="game-log">
+            <div class="opacity-50">> 系统初始化...</div>
         </div>
     </div>
 
     <!-- Global Toast Area -->
-    <div id="toast-area" class="fixed bottom-20 md:bottom-10 left-0 right-0 pointer-events-none flex flex-col gap-2 items-center z-50"></div>
+    <div id="toast-area" class="fixed top-20 left-0 right-0 pointer-events-none flex flex-col gap-2 items-center z-50"></div>
 
     <!-- Modals -->
     <!-- Shop Modal -->
-    <div id="shop-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
-        <div class="pixel-box bg-white p-4 w-80 max-w-full">
-            <div class="flex justify-between items-center mb-4 border-b-2 border-black pb-2">
-                <h3 class="font-bold">杂货店</h3>
-                <button onclick="ui.toggleShop()" class="text-red-500 font-bold">X</button>
+    <div id="shop-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
+        <div class="pixel-box bg-white w-full max-w-md flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center p-3 border-b-2 border-black bg-green-100">
+                <h3 class="font-bold">🛒 杂货店</h3>
+                <button onclick="ui.toggleShop()" class="text-red-500 font-bold px-2">X</button>
             </div>
-            <div id="shop-items" class="space-y-2 max-h-60 overflow-y-auto">
+            <div id="shop-items" class="p-2 space-y-2 overflow-y-auto flex-1">
                 <!-- Items injected by JS -->
+            </div>
+            <div class="p-2 border-t-2 border-black bg-gray-50 text-center">
+                <button onclick="game.checkIn()" class="pixel-btn w-full py-2 text-blue-800 text-xs">📅 每日签到 (+奖励)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Modal -->
+    <div id="social-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
+        <div class="pixel-box bg-white w-full max-w-md flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center p-3 border-b-2 border-black bg-purple-100">
+                <h3 class="font-bold">👥 农场圈子</h3>
+                <button onclick="ui.toggleSocial()" class="text-red-500 font-bold px-2">X</button>
+            </div>
+            
+            <!-- Content -->
+            <div id="social-content" class="p-4 flex-1 overflow-y-auto">
+                <!-- Dynamic Content: Login or Member List -->
+                <div id="social-loading" class="text-center text-gray-500">加载中...</div>
+                
+                <!-- Not in Circle View -->
+                <div id="social-join-view" class="hidden flex flex-col gap-4">
+                    <div class="text-center text-xs text-gray-600 mb-2">加入圈子，和朋友一起玩!</div>
+                    
+                    <div class="p-4 border-2 border-dashed border-gray-300 rounded text-center">
+                        <h4 class="font-bold mb-2">创建新圈子</h4>
+                        <button onclick="game.createCircle()" class="pixel-btn px-4 py-2 text-blue-700 w-full">✨ 创建房间</button>
+                    </div>
+
+                    <div class="flex items-center justify-center text-gray-400 text-xs">- 或 -</div>
+
+                    <div class="p-4 border-2 border-dashed border-gray-300 rounded text-center">
+                        <h4 class="font-bold mb-2">加入现有圈子</h4>
+                        <div class="flex gap-2">
+                            <input type="text" id="join-room-id" placeholder="输入房间号" class="border-2 border-black p-2 w-full font-mono text-center uppercase" maxlength="6">
+                            <button onclick="game.joinCircle()" class="pixel-btn px-4 text-green-700">加入</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Circle View -->
+                <div id="social-members-view" class="hidden">
+                    <div class="bg-yellow-100 p-2 mb-4 border border-yellow-500 text-center rounded">
+                        <span class="text-xs text-gray-600">当前房间号:</span>
+                        <div class="text-xl font-bold font-mono tracking-widest text-blue-800 select-all" id="current-room-id">000000</div>
+                    </div>
+                    
+                    <h4 class="font-bold mb-2 text-xs text-gray-500 border-b pb-1">我的邻居</h4>
+                    <div id="members-list" class="space-y-2">
+                        <!-- Member items -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Plot Action Modal -->
-    <div id="plot-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+    <div id="plot-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
         <div class="pixel-box bg-white p-4 w-72">
-            <h3 class="font-bold text-center mb-4" id="plot-modal-title">土地操作</h3>
+            <h3 class="font-bold text-center mb-4" id="plot-modal-title">操作</h3>
             <div id="plot-actions" class="grid grid-cols-2 gap-2">
                 <!-- Dynamic Buttons -->
             </div>
@@ -291,7 +369,6 @@
             init: async () => {
                 const statusDot = document.getElementById('network-dot');
                 const statusText = document.getElementById('network-text');
-                const saveBtn = document.getElementById('save-btn');
 
                 try {
                     // Attempt real login
@@ -303,31 +380,28 @@
                     state = json.data; // Load data from server
                     api.online = true;
                     
-                    // Update UI for Online Mode
                     statusDot.className = "w-2 h-2 rounded-full bg-green-500";
-                    statusText.innerText = `在线 (ID:${api.userId.substr(0,4)})`;
-                    saveBtn.classList.remove('hidden');
+                    statusText.innerText = `在线`;
                     ui.updateLog("连接服务器成功，存档已同步。");
 
                 } catch (e) {
                     // Fallback to LocalStorage (Offline Mode)
-                    console.log("Server unreachable, switching to offline mode.");
+                    // console.log("Server unreachable, switching to offline mode.");
                     api.userId = api.getMockId();
                     api.online = false;
 
                     const localData = localStorage.getItem('pixel_farm_save');
                     if (localData) {
-                        state = JSON.parse(localData);
+                        const parsed = JSON.parse(localData);
+                        // Merge logic to avoid overwriting new fields with old save
+                        state = { ...state, ...parsed };
                         ui.updateLog("读取本地存档成功。");
                     } else {
-                        // New Game (Offline) - Initialize default state logic here if needed
                         ui.updateLog("欢迎新玩家! (离线模式)");
                     }
 
-                    // Update UI for Offline Mode
                     statusDot.className = "w-2 h-2 rounded-full bg-gray-400";
-                    statusText.innerText = "离线模式";
-                    saveBtn.classList.remove('hidden');
+                    statusText.innerText = "离线";
                 }
 
                 // Start Auto-Save Loop
@@ -344,21 +418,78 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ userId: api.userId, data: state })
                         });
-                        console.log("Cloud save successful");
+                        // console.log("Cloud save successful");
                     } catch (e) {
                         console.error("Cloud save failed, falling back to local");
-                        api.online = false; // Downgrade status
+                        api.online = false; 
                         document.getElementById('network-dot').className = "w-2 h-2 rounded-full bg-red-500";
                         localStorage.setItem('pixel_farm_save', JSON.stringify(state));
                     }
                 } else {
                     localStorage.setItem('pixel_farm_save', JSON.stringify(state));
-                    console.log("Local save successful");
+                    // console.log("Local save successful");
                 }
+            },
+
+            // Social APIs
+            createCircle: async () => {
+                if (!api.online) {
+                    ui.showToast('⚠️', '需要连接服务器');
+                    return null;
+                }
+                try {
+                    const res = await fetch(`${api.host}/circle/create`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: api.userId })
+                    });
+                    return await res.json();
+                } catch(e) { console.error(e); return null; }
+            },
+
+            joinCircle: async (circleId) => {
+                if (!api.online) {
+                    ui.showToast('⚠️', '需要连接服务器');
+                    return null;
+                }
+                try {
+                    const res = await fetch(`${api.host}/circle/join`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: api.userId, circleId })
+                    });
+                    return await res.json();
+                } catch(e) { console.error(e); return null; }
+            },
+
+            getCircleMembers: async () => {
+                if (!api.online) return { members: [] }; // Mock for offline
+                try {
+                    const res = await fetch(`${api.host}/circle/members?userId=${api.userId}`);
+                    return await res.json();
+                } catch(e) { return { members: [] }; }
+            },
+
+            getUser: async (targetId) => {
+                try {
+                    const res = await fetch(`${api.host}/user/${targetId}`);
+                    return await res.json();
+                } catch(e) { return null; }
+            },
+
+            interact: async (action, targetId, plotId) => {
+                try {
+                    const res = await fetch(`${api.host}/interact`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ actorId: api.userId, targetId, action, plotId })
+                    });
+                    return await res.json();
+                } catch(e) { return { success: false, msg: '网络错误' }; }
             }
         };
 
-        // --- Game Configuration & Data ---
+        // --- Game Configuration ---
         const CONFIG = {
             levels: [0, 100, 300, 600, 1000, 1500, 2200, 3000, 4000, 5000],
             crops: {
@@ -377,25 +508,25 @@
             ]
         };
 
-        // --- Game State (Default Template) ---
-        // Actual state will be loaded by api.init()
+        // --- Default Game State ---
         let state = {
             level: 1,
             xp: 0,
             coins: 100,
+            circleId: null,
             lastCheckIn: null,
             inventory: {
-                seeds: { carrot: 2 } // Start with 2 carrot seeds
+                seeds: { carrot: 2 } 
             },
             plots: Array(9).fill(null).map((_, i) => ({
                 id: i,
-                locked: i >= 3, // Start with 3 plots
-                crop: null, // { type: 'carrot', plantedAt: timestamp, stage: 0-3, water: 100 }
+                locked: i >= 3, 
+                crop: null, 
             })),
             pet: {
                 stage: 0,
                 love: 0,
-                hunger: 80, // 0-100
+                hunger: 80, 
                 lastInteraction: Date.now()
             }
         };
@@ -403,15 +534,10 @@
         // --- UI Controller ---
         const ui = {
             init: async () => {
-                // Initialize Network & Load Data First
                 await api.init();
-
-                // Then Render
                 ui.renderStats();
                 ui.renderFarm();
                 ui.renderPet();
-                
-                // Start Loop
                 setInterval(game.loop, 1000);
             },
 
@@ -433,38 +559,57 @@
             renderFarm: () => {
                 const grid = document.getElementById('farm-grid');
                 grid.innerHTML = '';
+                
+                // Determine which plots to show (My own or visited target)
+                const plots = game.visiting ? game.visitState.plots : state.plots;
+                const isVisiting = !!game.visiting;
 
-                state.plots.forEach(plot => {
+                if (isVisiting) {
+                    document.getElementById('farm-title').innerText = `🏠 ${game.visiting} 的家`;
+                    document.getElementById('visit-indicator').classList.remove('hidden');
+                } else {
+                    document.getElementById('farm-title').innerText = `🌱 我的农场`;
+                    document.getElementById('visit-indicator').classList.add('hidden');
+                }
+
+                plots.forEach(plot => {
                     const el = document.createElement('div');
                     
                     if (plot.locked) {
                         el.className = 'plot locked rounded-md h-24 flex flex-col justify-center items-center text-gray-500';
-                        el.innerHTML = `<span class="text-2xl">🔒</span><span class="text-[8px]">Lv.${Math.floor(plot.id/3) * 2 + 1}解锁</span>`;
+                        el.innerHTML = `<span class="text-2xl">🔒</span><span class="text-[8px]">未解锁</span>`;
                     } else {
-                        // Unlocked Plot
                         el.className = `plot rounded-md h-24 flex flex-col justify-center items-center relative shadow-inner ${plot.crop && plot.crop.water <= 0 ? 'dry' : ''}`;
                         el.onclick = () => game.handlePlotClick(plot.id);
 
                         if (!plot.crop) {
                             el.innerHTML = `<span class="text-gray-700 opacity-50 text-xs">空闲</span>`;
                         } else {
-                            // Growing Crop
                             const cropConfig = CONFIG.crops[plot.crop.type];
                             const progress = Math.min(100, (plot.crop.progress / cropConfig.growTime) * 100);
+                            const isRipe = progress >= 100;
                             
-                            // Visual stage based on progress
-                            let icon = '🌱'; // Sprout
-                            if (progress > 33) icon = '🌿'; // Growing
-                            if (progress > 66) icon = '🌳'; // Tall
-                            if (progress >= 100) icon = cropConfig.icon; // Ripe
+                            let icon = '🌱'; 
+                            if (progress > 33) icon = '🌿'; 
+                            if (progress > 66) icon = '🌳'; 
+                            if (progress >= 100) icon = cropConfig.icon; 
+
+                            // Interaction badges for visitors
+                            let badge = '';
+                            if (isVisiting) {
+                                if (isRipe && !plot.crop.stolen) badge = '<div class="absolute -top-2 -right-2 bg-yellow-400 rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow animate-bounce z-10">🖐️</div>';
+                                else if (plot.crop.water <= 0) badge = '<div class="absolute -top-2 -right-2 bg-blue-400 rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow animate-bounce z-10">💧</div>';
+                            }
 
                             el.innerHTML = `
-                                <div class="text-3xl animate-bounce-pixel">${icon}</div>
+                                ${badge}
+                                <div class="text-3xl ${isRipe && !isVisiting ? 'animate-bounce-pixel' : ''}">${icon}</div>
                                 <div class="absolute bottom-1 left-1 right-1">
                                     <div class="pixel-progress-container h-1.5">
                                         <div class="pixel-progress-fill ${plot.crop.water <= 0 ? 'bg-red-500' : 'bg-green-500'}" style="width: ${progress}%"></div>
                                     </div>
                                     ${plot.crop.water <= 0 ? '<div class="text-[8px] text-red-800 bg-white/80 absolute -top-4 w-full text-center">缺水!</div>' : ''}
+                                    ${plot.crop.stolen ? '<div class="text-[8px] text-gray-500 bg-white/80 absolute -top-6 w-full text-center">已偷过</div>' : ''}
                                 </div>
                             `;
                         }
@@ -478,17 +623,14 @@
                 document.getElementById('pet-sprite').innerText = petConfig.icon;
                 document.getElementById('pet-name').innerText = petConfig.name;
                 
-                // Love
                 const nextStageLove = CONFIG.petStages[state.pet.stage + 1] ? CONFIG.petStages[state.pet.stage + 1].loveReq : 'MAX';
                 const lovePercent = typeof nextStageLove === 'number' ? (state.pet.love / nextStageLove) * 100 : 100;
                 document.getElementById('pet-love-bar').style.width = `${Math.min(100, lovePercent)}%`;
                 document.getElementById('pet-love-val').innerText = `${state.pet.love}/${nextStageLove}`;
 
-                // Hunger
                 document.getElementById('pet-hunger-bar').style.width = `${state.pet.hunger}%`;
                 document.getElementById('pet-hunger-val').innerText = `${state.pet.hunger}/100`;
                 
-                // Hunger color
                 const hungerBar = document.getElementById('pet-hunger-bar');
                 if (state.pet.hunger < 30) hungerBar.className = 'pixel-progress-fill bg-red-600';
                 else if (state.pet.hunger < 70) hungerBar.className = 'pixel-progress-fill bg-yellow-500';
@@ -519,8 +661,6 @@
                 
                 if (modal.classList.contains('hidden')) {
                     list.innerHTML = '';
-                    
-                    // Generate Seed Items
                     Object.entries(CONFIG.crops).forEach(([key, crop]) => {
                         const locked = state.level < crop.unlockLvl;
                         const owned = state.inventory.seeds[key] || 0;
@@ -532,7 +672,7 @@
                                 <span class="text-2xl">${crop.icon}</span>
                                 <div>
                                     <div class="font-bold text-sm">${crop.name}种子</div>
-                                    <div class="text-[10px] text-gray-500">需Lv.${crop.unlockLvl} • ${crop.growTime}秒</div>
+                                    <div class="text-[10px] text-gray-500">需Lv.${crop.unlockLvl} • ${crop.growTime}s</div>
                                 </div>
                             </div>
                             <div class="text-right">
@@ -546,8 +686,70 @@
                         `;
                         list.appendChild(item);
                     });
-
                     modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            },
+
+            toggleSocial: async () => {
+                const modal = document.getElementById('social-modal');
+                const loader = document.getElementById('social-loading');
+                const joinView = document.getElementById('social-join-view');
+                const membersView = document.getElementById('social-members-view');
+                const membersList = document.getElementById('members-list');
+
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                    loader.classList.remove('hidden');
+                    joinView.classList.add('hidden');
+                    membersView.classList.add('hidden');
+
+                    if (!api.online) {
+                        loader.innerText = "离线模式无法使用社交功能";
+                        return;
+                    }
+
+                    // Check if user is in a circle
+                    if (!state.circleId) {
+                        loader.classList.add('hidden');
+                        joinView.classList.remove('hidden');
+                    } else {
+                        // Fetch members
+                        const data = await api.getCircleMembers();
+                        loader.classList.add('hidden');
+                        membersView.classList.remove('hidden');
+                        
+                        document.getElementById('current-room-id').innerText = state.circleId;
+                        
+                        membersList.innerHTML = '';
+                        if (data.members && data.members.length > 0) {
+                            data.members.forEach(m => {
+                                const isMe = m.userId === api.userId;
+                                const div = document.createElement('div');
+                                div.className = `pixel-box p-2 flex justify-between items-center ${isMe ? 'bg-blue-50' : 'bg-white'}`;
+                                div.innerHTML = `
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs border border-gray-400">
+                                            ${m.userId.substr(0,2)}
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-xs flex items-center gap-1">
+                                                ID:${m.userId.substr(0,4)} 
+                                                ${isMe ? '<span class="text-blue-500">(我)</span>' : ''}
+                                            </div>
+                                            <div class="text-[8px] text-gray-500">Lv.${m.level} • 💰${m.coins}</div>
+                                        </div>
+                                    </div>
+                                    ${!isMe ? `<button onclick="game.visit('${m.userId}')" class="pixel-btn px-2 py-1 text-[10px]">🏠 拜访</button>` : ''}
+                                `;
+                                membersList.appendChild(div);
+                            });
+                        } else {
+                            membersList.innerHTML = '<div class="text-center text-gray-500 text-xs py-4">获取成员列表失败</div>';
+                        }
+                    }
+
                 } else {
                     modal.classList.add('hidden');
                 }
@@ -558,21 +760,20 @@
                 const petView = document.getElementById('view-pet');
                 const btn = document.getElementById('view-toggle-btn');
                 
-                // Base classes for the button to maintain responsiveness
-                const baseClasses = "pixel-btn flex-1 md:flex-none px-2 py-1 md:px-4 md:py-2 text-xs h-8 md:h-auto whitespace-nowrap";
-
                 if (farmView.classList.contains('hidden')) {
                     // Switch to Farm
                     farmView.classList.remove('hidden');
                     petView.classList.add('hidden');
-                    btn.innerHTML = "🐾 <span class='hidden md:inline'>去</span>喂宠物";
-                    btn.className = `${baseClasses} text-pink-800`;
+                    btn.innerText = "🐾 去喂宠物";
+                    btn.classList.remove('text-green-800');
+                    btn.classList.add('text-pink-800');
                 } else {
                     // Switch to Pet
                     farmView.classList.add('hidden');
                     petView.classList.remove('hidden');
-                    btn.innerHTML = "🌱 <span class='hidden md:inline'>去</span>农场";
-                    btn.className = `${baseClasses} text-green-800`;
+                    btn.innerText = "🌱 去农场";
+                    btn.classList.remove('text-pink-800');
+                    btn.classList.add('text-green-800');
                 }
             },
 
@@ -585,8 +786,7 @@
                 modal.classList.remove('hidden');
 
                 if (type === 'empty') {
-                    title.innerText = "选择种子播种";
-                    // List inventory seeds
+                    title.innerText = "选择种子";
                     let hasSeeds = false;
                     Object.entries(state.inventory.seeds).forEach(([seedKey, count]) => {
                         if (count > 0) {
@@ -640,37 +840,31 @@
 
         // --- Game Logic ---
         const game = {
+            visiting: null, // Stores ID of user being visited
+            visitState: null, // Stores data of user being visited
+
             loop: () => {
-                // 1. Grow Crops
+                // Only update own farm loop logic
                 state.plots.forEach(plot => {
                     if (plot.crop) {
                         if (plot.crop.water > 0) {
                             const cropData = CONFIG.crops[plot.crop.type];
-                            // Only grow if not finished
                             if (plot.crop.progress < cropData.growTime) {
                                 plot.crop.progress += 1;
-                                plot.crop.water -= 0.5; // Consumes water over time
+                                plot.crop.water -= 0.5; 
                             }
                         }
                     }
                 });
 
-                // 2. Pet Hunger
                 if (state.pet.hunger > 0) {
-                    state.pet.hunger -= 0.2; // Slowly get hungry
+                    state.pet.hunger -= 0.2; 
                     if (state.pet.hunger < 0) state.pet.hunger = 0;
                 }
 
-                // 3. Unlock Plots
-                // Plots 3, 4, 5... unlock at level 2, 4, 6
-                // Map: Plot ID -> Unlock Level
-                // 0-2: Lvl 0
-                // 3: Lvl 2
-                // 4: Lvl 3
-                // 5: Lvl 4 etc.
                 state.plots.forEach((plot, index) => {
                     if (index >= 3) {
-                        const requiredLvl = Math.floor(index/3) * 2 + 1; // Simplified logic for demo
+                        const requiredLvl = Math.floor(index/3) * 2 + 1;
                         if (state.level >= requiredLvl && plot.locked) {
                             plot.locked = false;
                             ui.updateLog(`解锁了一块新土地!`);
@@ -683,25 +877,119 @@
                 ui.renderStats();
             },
             
+            visit: async (targetId) => {
+                ui.showToast('⏳', '正在前往...');
+                const data = await api.getUser(targetId);
+                if (data && data.data) {
+                    game.visiting = targetId;
+                    game.visitState = data.data;
+                    document.getElementById('social-modal').classList.add('hidden'); // Close modal
+                    // Switch to Farm view
+                    document.getElementById('view-farm').classList.remove('hidden');
+                    document.getElementById('view-pet').classList.add('hidden');
+                    ui.renderFarm();
+                    ui.showToast('🏠', `来到 ${targetId.substr(0,4)} 的家`);
+                } else {
+                    ui.showToast('❌', '无法加载');
+                }
+            },
+
+            returnHome: () => {
+                game.visiting = null;
+                game.visitState = null;
+                ui.renderFarm();
+                ui.showToast('🏠', '欢迎回家');
+            },
+
             forceSave: () => {
                 api.save();
                 ui.showToast('💾', '已保存');
             },
+            
+            createCircle: async () => {
+                const res = await api.createCircle();
+                if (res && res.success) {
+                    state.circleId = res.circleId;
+                    ui.toggleSocial(); // Close and reopen to refresh view
+                    ui.showToast('✅', '创建成功!');
+                    setTimeout(() => ui.toggleSocial(), 100);
+                } else if (res) {
+                    ui.showToast('❌', res.error);
+                }
+            },
 
-            handlePlotClick: (id) => {
+            joinCircle: async () => {
+                const roomId = document.getElementById('join-room-id').value;
+                if (!roomId || roomId.length !== 6) {
+                    ui.showToast('❌', '请输入6位房间号');
+                    return;
+                }
+                const res = await api.joinCircle(roomId);
+                if (res && res.success) {
+                    state.circleId = res.circleId;
+                    ui.toggleSocial();
+                    ui.showToast('✅', '加入成功!');
+                    setTimeout(() => ui.toggleSocial(), 100);
+                } else if (res) {
+                    ui.showToast('❌', res.error);
+                }
+            },
+
+            handlePlotClick: async (id) => {
+                // Visit Mode
+                if (game.visiting) {
+                    const plot = game.visitState.plots[id];
+                    if (!plot || plot.locked || !plot.crop) return;
+
+                    const cropData = CONFIG.crops[plot.crop.type];
+                    const isRipe = plot.crop.progress >= cropData.growTime;
+                    const isDry = plot.crop.water <= 0;
+
+                    if (isRipe) {
+                        if (plot.crop.stolen) {
+                            ui.showToast('🔒', '这已经被偷过了');
+                            return;
+                        }
+                        if (confirm(`要偷取 ${game.visiting.substr(0,4)} 的 ${cropData.name} 吗?`)) {
+                             const res = await api.interact('steal', game.visiting, id);
+                             if (res.success) {
+                                 plot.crop.stolen = true; // Update local view
+                                 game.addXP(2); // Client visual update
+                                 state.coins += Math.floor(cropData.sellPrice * 0.3);
+                                 ui.showToast('💰', res.msg);
+                                 ui.updateLog(res.msg);
+                             } else {
+                                 ui.showToast('❌', res.msg);
+                             }
+                        }
+                    } else if (isDry) {
+                        if (confirm(`要帮 ${game.visiting.substr(0,4)} 浇水吗? (+5xp, +5💰)`)) {
+                             const res = await api.interact('water', game.visiting, id);
+                             if (res.success) {
+                                 plot.crop.water = 100; // Update local view
+                                 game.addXP(5);
+                                 state.coins += 5;
+                                 ui.showToast('💧', res.msg);
+                                 ui.updateLog(res.msg);
+                             } else {
+                                 ui.showToast('❌', res.msg);
+                             }
+                        }
+                    }
+                    return;
+                }
+
+                // Own Farm Mode
                 const plot = state.plots[id];
                 if (!plot || plot.locked) return;
 
                 if (!plot.crop) {
-                    // Empty: Open plant menu
                     ui.showPlotModal(id, 'empty');
                 } else {
                     const cropData = CONFIG.crops[plot.crop.type];
                     if (plot.crop.progress >= cropData.growTime) {
-                        // Harvest
                         game.harvest(id);
                     } else {
-                        // Growing: Open care menu
                         ui.showPlotModal(id, 'growing');
                     }
                 }
@@ -739,7 +1027,7 @@
                     const cropData = CONFIG.crops[plot.crop.type];
                     if (plot.crop.progress < cropData.growTime) {
                         state.coins -= 50;
-                        plot.crop.progress += 20; // Instant growth boost
+                        plot.crop.progress += 20; 
                         game.addXP(5);
                         ui.showToast('⚡', '生长加速!');
                         ui.updateLog('施肥加速生长 (-50💰, +5 XP)');
@@ -757,13 +1045,18 @@
                 const plot = state.plots[plotId];
                 if (plot && plot.crop) {
                     const cropData = CONFIG.crops[plot.crop.type];
-                    const income = cropData.sellPrice;
+                    let income = cropData.sellPrice;
                     const xpGain = cropData.xp;
+
+                    // If stolen, reduce income by 30% (penalty)
+                    if (plot.crop.stolen) {
+                        income = Math.floor(income * 0.7);
+                        ui.updateLog(`糟糕! ${cropData.name}被偷过了，收益减少。`);
+                    }
 
                     state.coins += income;
                     game.addXP(xpGain);
                     
-                    // Chance to get seed back?
                     if (Math.random() > 0.8) {
                         state.inventory.seeds[plot.crop.type] = (state.inventory.seeds[plot.crop.type] || 0) + 1;
                         ui.updateLog(`收获时意外获得一颗${cropData.name}种子!`);
@@ -783,7 +1076,7 @@
                     state.coins -= crop.seedPrice;
                     state.inventory.seeds[type] = (state.inventory.seeds[type] || 0) + 1;
                     ui.updateLog(`购买了 ${crop.name}种子`);
-                    ui.toggleShop(); // Refresh UI to show updated quantities/coins
+                    ui.toggleShop(); 
                     ui.toggleShop(); 
                     ui.renderStats();
                     api.save();
@@ -817,7 +1110,6 @@
                 ui.renderStats();
             },
 
-            // --- Pet Logic ---
             feedPet: () => {
                 if (state.pet.hunger >= 90) {
                     ui.updateLog('宠物太饱了，吃不下了。');
@@ -872,7 +1164,6 @@
             increasePetLove: (amount) => {
                 state.pet.love += amount;
                 
-                // Evolution Check
                 const nextStage = CONFIG.petStages[state.pet.stage + 1];
                 if (nextStage && state.pet.love >= nextStage.loveReq) {
                     state.pet.stage++;
@@ -884,9 +1175,7 @@
             }
         };
 
-        // Initialize
         ui.init();
-
     </script>
 </body>
 </html>
